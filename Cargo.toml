@@ -1,0 +1,18 @@
+[package]
+name = "minilaunch"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anstyle = "1.0.13"
+clap = { version = "4.5.54", features = ["derive"] }
+
+# Optimize dependencies only in development builds
+[profile.dev.package."*"]
+opt-level = 1
+codegen-units = 1
+
+[profile.release]
+opt-level = 3
+codegen-units = 1
+lto = true
