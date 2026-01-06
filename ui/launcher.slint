@@ -1,0 +1,37 @@
+import { VerticalBox, LineEdit } from "std-widgets.slint";
+
+component Option inherits Rectangle {
+    width: 100%;
+    height: 50px;
+    border-radius: 8px;
+
+    background: touch.pressed ? #6b8282 : touch.has-hover ? #6c616c : #456;
+
+    animate background { duration: 100ms; }
+
+    touch := TouchArea { }
+}
+
+component Divider inherits Rectangle {
+    width: 100%;
+    height: 1px;
+    background: #888;
+}
+
+export component Launcher inherits Window {
+    title: "MiniLaunch";
+    VerticalBox {
+        LineEdit {
+            placeholder-text: "Enter an app name...";
+            height: 50px;
+        }
+
+        Divider { }
+
+        Option { }
+
+        Option { }
+
+        Option { }
+    }
+}
