@@ -1,4 +1,4 @@
-import { LauncherState } from "state.slint";
+import { LauncherState, LauncherColors } from "state.slint";
 
 // Main input component
 export component LauncherInput inherits Rectangle {
@@ -9,7 +9,7 @@ export component LauncherInput inherits Rectangle {
     // Basic styling
     border-radius: 8px;
     border-width: 1px;
-    border-color: #888;
+    border-color: LauncherColors.border;
     height: 40px;
     clip: true;
 
@@ -18,7 +18,7 @@ export component LauncherInput inherits Rectangle {
         property <string> placeholder: "Enter command...";
 
         // Styling
-        color: empty ? gray : white;
+        color: empty ? LauncherColors.border : LauncherColors.text;
         text: placeholder;
         x: parent.x + 5px; // left padding
         width: parent.width - 10px;
@@ -67,6 +67,8 @@ export component LauncherInput inherits Rectangle {
             if self.empty && LauncherState.is_alphanumeric(event.text) {
                 self.text = "";
                 self.empty = false;
+            } else if self.empty && (event.text == Key.Backspace || event.text == Key.Delete) {
+                return accept;
             }
             reject
         }

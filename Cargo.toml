@@ -7,10 +7,13 @@ edition = "2024"
 anstyle = "1.0.13"
 clap = { version = "4.5.54", features = ["derive"] }
 dirs-next = "2.0.0"
+hex_color = { version = "3.0.0", features = ["serde"] }
 nucleo-matcher = "0.3.1"
 rkyv = "0.8.13"
+serde = { version = "1", features = ["derive"] }
 slint = "1.14.1"
 sys-locale = "0.3.2"
+toml = "0.9.10"
 unidecode = "0.3.0"
 
 [build-dependencies]

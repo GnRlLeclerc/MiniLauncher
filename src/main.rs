@@ -16,6 +16,7 @@ use crate::{cli::Args, commands::Command};
 mod apps;
 mod cli;
 mod commands;
+mod config;
 mod entries;
 mod freedesktop;
 mod paths;
@@ -38,6 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut launcher_entries = Vec::new();
 
         let entries = apps::get_app_entries();
+        let colors = config::read_colors();
 
         entries.into_iter().for_each(|e| {
             let keywords = iter::once(e.name.as_str())
@@ -75,8 +77,20 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let ui = Launcher::new()?;
         let ui_handle = ui.as_weak();
+
+        // Set initial states
         ui.global::<LauncherState>()
             .set_entries(ModelRc::from(Rc::new(VecModel::from(initial_entries))));
+
+        if let Some(colors) = colors {
+            ui.global::<LauncherColors>()
+                .set_background(colors.background);
+            ui.global::<LauncherColors>().set_text(colors.text);
+            ui.global::<LauncherColors>().set_border(colors.border);
+            ui.global::<LauncherColors>().set_accent(colors.accent);
+            ui.global::<LauncherColors>()
+                .set_highlight(colors.highlight);
+        }
 
         ui.global::<LauncherState>().on_run_command(move |name| {
             if let Some(cmd) = entry_commands.get(name.as_str()) {

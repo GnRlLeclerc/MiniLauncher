@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/schemas/colors.json",
+  "title": "Colors",
+  "type": "object",
+  "required": ["background", "text", "border", "accent", "highlight"],
+  "additionalProperties": false,
+  "properties": {
+    "background": { "$ref": "#/$defs/rgbHex" },
+    "text": { "$ref": "#/$defs/rgbHex" },
+    "border": { "$ref": "#/$defs/rgbHex" },
+    "accent": { "$ref": "#/$defs/rgbHex" },
+    "highlight": { "$ref": "#/$defs/rgbHex" }
+  },
+  "$defs": {
+    "rgbHex": {
+      "type": "string",
+      "description": "RGB hex color (#RRGGBB)",
+      "pattern": "^#[0-9a-fA-F]{6}$"
+    }
+  }
+}

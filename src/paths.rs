@@ -17,3 +17,7 @@ pub fn config_dir() -> PathBuf {
         .expect("Could not determine config directory")
         .join(APP_NAME)
 }
+
+pub fn colors_file() -> PathBuf {
+    config_dir().join("colors.toml")
+}
