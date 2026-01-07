@@ -1,7 +1,7 @@
 // Prevent console window in addition to Slint window in Windows release builds when, e.g., starting the app via file manager. Ignored on other platforms.
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::{collections::HashMap, error::Error, iter, rc::Rc};
+use std::{collections::HashMap, env, error::Error, iter, process::exit, rc::Rc};
 
 use clap::Parser;
 use nucleo_matcher::{
@@ -11,21 +11,16 @@ use nucleo_matcher::{
 use slint::{ModelRc, VecModel};
 use unidecode::unidecode;
 
-use crate::cli::Args;
+use crate::{cli::Args, commands::Command};
 
 mod apps;
 mod cli;
+mod commands;
 mod entries;
 mod freedesktop;
 mod paths;
 
 slint::include_modules!();
-
-/// Commands to run for each launcher entry
-struct Command {
-    command: String,
-    terminal: bool,
-}
 
 const MAX_DISPLAYED_ENTRIES: usize = 5;
 
@@ -82,6 +77,15 @@ fn main() -> Result<(), Box<dyn Error>> {
         let ui_handle = ui.as_weak();
         ui.global::<LauncherState>()
             .set_entries(ModelRc::from(Rc::new(VecModel::from(initial_entries))));
+
+        ui.global::<LauncherState>().on_run_command(move |name| {
+            if let Some(cmd) = entry_commands.get(name.as_str()) {
+                commands::run(cmd);
+
+                // Close the launcher after running the command
+                exit(0);
+            }
+        });
 
         ui.global::<LauncherState>()
             .on_update_entries(move |input| {

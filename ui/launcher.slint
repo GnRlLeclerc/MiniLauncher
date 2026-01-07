@@ -10,17 +10,20 @@ export struct LauncherEntry {
 // Global app state
 export global LauncherState {
     in-out property <[LauncherEntry]> entries;
+    in-out property <int> selected_index: 0;
     callback update_entries(input: string);
     callback run_command(name: string);
 }
 
 component Option inherits Rectangle {
     in property <string> name;
+    in property <int> index: -1;
+
     width: 100%;
     height: 50px;
     border-radius: 8px;
 
-    background: touch.pressed ? #6b8282 : touch.has-hover ? #6c616c : #456;
+    background: touch.pressed ? #6b8282 : (index == LauncherState.selected_index) ? #6c616c : #456;
 
     animate background { duration: 100ms; }
 
@@ -28,7 +31,15 @@ component Option inherits Rectangle {
         text: name;
     }
 
-    touch := TouchArea { }
+    touch := TouchArea {
+        changed has-hover => {
+            if self.has-hover {
+                LauncherState.selected_index = index;
+            }
+        }
+
+        clicked => LauncherState.run_command(name);
+    }
 }
 
 component Divider inherits Rectangle {
@@ -38,22 +49,38 @@ component Divider inherits Rectangle {
 }
 
 export component Launcher inherits Window {
+    init => {
+        input.focus();
+    }
+
     title: "MiniLauncher";
     VerticalBox {
-        LineEdit {
+        input := LineEdit {
             placeholder-text: "Enter an app name...";
             height: 50px;
-            edited(input) => LauncherState.update_entries(input);
+            edited(input) => {
+                LauncherState.update_entries(input);
+
+                // Adjust selected index if out of bounds
+                if LauncherState.entries.length == 0 {
+                    LauncherState.selected_index = 0;
+                } else if LauncherState.selected_index >= LauncherState.entries.length {
+                    LauncherState.selected_index = LauncherState.entries.length - 1;
+                }
+            }
             accepted(_) => {
-                // TODO: keep track of a selected entry, by index in the list
-                debug("Currently selected entry has been accepted");
+                if LauncherState.entries.length > 0 {
+                    let selected_entry = LauncherState.entries[LauncherState.selected_index];
+                    LauncherState.run_command(selected_entry.name);
+                }
             }
         }
 
         Divider { }
 
-        for entry in LauncherState.entries: Option {
+        for entry[index] in LauncherState.entries: Option {
             name: entry.name;
+            index: index;
         }
     }
 }
