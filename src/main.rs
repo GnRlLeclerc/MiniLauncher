@@ -38,10 +38,19 @@ fn main() -> Result<(), Box<dyn Error>> {
         let mut keyword_to_entry_index = HashMap::new();
         let mut launcher_entries = Vec::new();
 
-        let entries = apps::get_app_entries();
         let colors = config::read_colors();
 
-        entries.into_iter().for_each(|e| {
+        let mut entries_list = vec![];
+
+        if let Some(path) = args.entries {
+            entries_list = entries::read_from_file(&path);
+        } else if args.stdin {
+            entries_list = entries::read_from_stdin();
+        } else {
+            entries_list = apps::get_app_entries();
+        }
+
+        entries_list.into_iter().for_each(|e| {
             let keywords = iter::once(e.name.as_str())
                 .chain(e.keywords.unwrap_or_default().iter().map(String::as_str))
                 .collect::<Vec<_>>()

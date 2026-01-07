@@ -11,7 +11,9 @@ hex_color = { version = "3.0.0", features = ["serde"] }
 nucleo-matcher = "0.3.1"
 rkyv = "0.8.13"
 serde = { version = "1", features = ["derive"] }
+serde_json = "1"
 slint = "1.14.1"
+strip-ansi-escapes = "0.2.1"
 sys-locale = "0.3.2"
 toml = "0.9.10"
 unidecode = "0.3.0"

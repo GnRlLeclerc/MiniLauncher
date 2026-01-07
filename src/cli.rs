@@ -1,4 +1,6 @@
 //! CLI args and styles
+use std::path::PathBuf;
+
 use anstyle::*;
 use clap::{Parser, builder};
 
@@ -44,4 +46,10 @@ pub struct Args {
     /// Refresh the application cache
     #[arg(short, long)]
     pub refresh: bool,
+    /// Use custom entries from a toml or json file
+    #[arg(short, long)]
+    pub entries: Option<PathBuf>,
+    /// Use custom entries from stdin (json only, prefer using nushell scripts)
+    #[arg(short, long)]
+    pub stdin: bool,
 }
