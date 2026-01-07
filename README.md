@@ -1,3 +1,3 @@
-# MiniLaunch
+# MiniLauncher
 
 Fancy minimalistic launcher build with Slint.

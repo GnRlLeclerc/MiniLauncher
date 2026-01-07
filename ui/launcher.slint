@@ -1,6 +1,21 @@
 import { VerticalBox, LineEdit } from "std-widgets.slint";
 
+// Entry displayed in the menu
+export struct LauncherEntry {
+    name: string,
+    icon: string, // "" if no icon
+    description: string,
+}
+
+// Global app state
+export global LauncherState {
+    in-out property <[LauncherEntry]> entries;
+    callback update_entries(input: string);
+    callback run_command(name: string);
+}
+
 component Option inherits Rectangle {
+    in property <string> name;
     width: 100%;
     height: 50px;
     border-radius: 8px;
@@ -8,6 +23,10 @@ component Option inherits Rectangle {
     background: touch.pressed ? #6b8282 : touch.has-hover ? #6c616c : #456;
 
     animate background { duration: 100ms; }
+
+    Text {
+        text: name;
+    }
 
     touch := TouchArea { }
 }
@@ -19,19 +38,22 @@ component Divider inherits Rectangle {
 }
 
 export component Launcher inherits Window {
-    title: "MiniLaunch";
+    title: "MiniLauncher";
     VerticalBox {
         LineEdit {
             placeholder-text: "Enter an app name...";
             height: 50px;
+            edited(input) => LauncherState.update_entries(input);
+            accepted(_) => {
+                // TODO: keep track of a selected entry, by index in the list
+                debug("Currently selected entry has been accepted");
+            }
         }
 
         Divider { }
 
-        Option { }
-
-        Option { }
-
-        Option { }
+        for entry in LauncherState.entries: Option {
+            name: entry.name;
+        }
     }
 }
