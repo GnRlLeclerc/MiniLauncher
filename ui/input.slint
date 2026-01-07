@@ -1,0 +1,74 @@
+import { LauncherState } from "state.slint";
+
+// Main input component
+export component LauncherInput inherits Rectangle {
+    init => {
+        input.focus();
+    }
+
+    // Basic styling
+    border-radius: 8px;
+    border-width: 1px;
+    border-color: #888;
+    height: 40px;
+    clip: true;
+
+    input := TextInput {
+        property <bool> empty: true;
+        property <string> placeholder: "Enter command...";
+
+        // Styling
+        color: empty ? gray : white;
+        text: placeholder;
+        x: parent.x + 5px; // left padding
+        width: parent.width - 10px;
+        vertical-alignment: TextVerticalAlignment.center;
+
+        // Update entries on text change
+        edited() => {
+            // Add placeholder again if text is empty
+            if self.text.is-empty {
+                self.empty = true;
+                self.text = placeholder;
+            }
+            LauncherState.update_entries(self.text);
+
+            // Adjust selected index if out of bounds
+            if LauncherState.entries.length == 0 {
+                LauncherState.selected_index = 0;
+            } else if LauncherState.selected_index >= LauncherState.entries.length {
+                LauncherState.selected_index = LauncherState.entries.length - 1;
+            }
+        }
+
+        // Run command on enter
+        accepted() => {
+            if LauncherState.entries.length > 0 {
+                let selected_entry = LauncherState.entries[LauncherState.selected_index];
+                LauncherState.run_command(selected_entry.name);
+            }
+        }
+
+        // Handle arrow keys
+        key-pressed(event) => {
+            if event.text == Key.UpArrow {
+                if LauncherState.selected_index > 0 {
+                    LauncherState.selected_index = LauncherState.selected_index - 1;
+                }
+                return accept;
+            } else if event.text == Key.DownArrow {
+                if LauncherState.selected_index < LauncherState.entries.length - 1 {
+                    LauncherState.selected_index += 1;
+                }
+                return accept;
+            }
+
+            // Remove placeholder on first input
+            if self.empty && LauncherState.is_alphanumeric(event.text) {
+                self.text = "";
+                self.empty = false;
+            }
+            reject
+        }
+    }
+}

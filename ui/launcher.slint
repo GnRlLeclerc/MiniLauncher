@@ -1,23 +1,14 @@
 import { VerticalBox, LineEdit } from "std-widgets.slint";
+import { LauncherState } from "state.slint";
+import { LauncherInput } from "input.slint";
 
-// Entry displayed in the menu
-export struct LauncherEntry {
-    name: string,
-    icon: string, // "" if no icon
-    description: string,
-}
+// Re-export state singleton to make it accessible from rust
+export {LauncherState} from "state.slint";
 
-// Global app state
-export global LauncherState {
-    in-out property <[LauncherEntry]> entries;
-    in-out property <int> selected_index: 0;
-    callback update_entries(input: string);
-    callback run_command(name: string);
-}
 
 component Option inherits Rectangle {
     in property <string> name;
-    in property <int> index: -1;
+    in property <int> index;
 
     width: 100%;
     height: 50px;
@@ -49,32 +40,9 @@ component Divider inherits Rectangle {
 }
 
 export component Launcher inherits Window {
-    init => {
-        input.focus();
-    }
-
     title: "MiniLauncher";
     VerticalBox {
-        input := LineEdit {
-            placeholder-text: "Enter an app name...";
-            height: 50px;
-            edited(input) => {
-                LauncherState.update_entries(input);
-
-                // Adjust selected index if out of bounds
-                if LauncherState.entries.length == 0 {
-                    LauncherState.selected_index = 0;
-                } else if LauncherState.selected_index >= LauncherState.entries.length {
-                    LauncherState.selected_index = LauncherState.entries.length - 1;
-                }
-            }
-            accepted(_) => {
-                if LauncherState.entries.length > 0 {
-                    let selected_entry = LauncherState.entries[LauncherState.selected_index];
-                    LauncherState.run_command(selected_entry.name);
-                }
-            }
-        }
+        LauncherInput { }
 
         Divider { }
 

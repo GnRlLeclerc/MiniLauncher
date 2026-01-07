@@ -1,0 +1,17 @@
+// Launcher global state
+
+// Entry displayed in the menu
+export struct LauncherEntry {
+    name: string,
+    icon: string, // "" if no icon
+    description: string,
+}
+
+// Global app state
+export global LauncherState {
+    in-out property <[LauncherEntry]> entries;
+    in-out property <int> selected_index: 0;
+    callback update_entries(input: string);
+    callback run_command(name: string);
+    callback is_alphanumeric(c: string) -> bool; // needed for proper placeholder handling
+}
