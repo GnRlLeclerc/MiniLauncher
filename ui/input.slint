@@ -13,24 +13,26 @@ export component LauncherInput inherits Rectangle {
     height: 40px;
     clip: true;
 
-    input := TextInput {
-        property <bool> empty: true;
-        property <string> placeholder: "Enter command...";
+    // Placeholder underlay
+    Text {
+        horizontal-alignment: TextHorizontalAlignment.left;
+        text: "Enter a command...";
+        color: LauncherColors.border;
+        x: parent.x + 5px; // left padding
+        width: parent.width - 10px;
+        visible: input.text.is-empty;
+    }
 
+    input := TextInput {
         // Styling
-        color: empty ? LauncherColors.border : LauncherColors.text;
-        text: placeholder;
+        color: LauncherColors.text;
+        text: "";
         x: parent.x + 5px; // left padding
         width: parent.width - 10px;
         vertical-alignment: TextVerticalAlignment.center;
 
         // Update entries on text change
         edited() => {
-            // Add placeholder again if text is empty
-            if self.text.is-empty {
-                self.empty = true;
-                self.text = placeholder;
-            }
             LauncherState.update_entries(self.text);
 
             // Adjust selected index if out of bounds
@@ -60,14 +62,6 @@ export component LauncherInput inherits Rectangle {
                 if LauncherState.selected_index < LauncherState.entries.length - 1 {
                     LauncherState.selected_index += 1;
                 }
-                return accept;
-            }
-
-            // Remove placeholder on first input
-            if self.empty && LauncherState.is_alphanumeric(event.text) {
-                self.text = "";
-                self.empty = false;
-            } else if self.empty && (event.text == Key.Backspace || event.text == Key.Delete) {
                 return accept;
             }
             reject

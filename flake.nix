@@ -53,7 +53,7 @@
             version = "0.1.0";
 
             src = ./.;
-            cargoHash = "sha256-CCyoBXi28Ko5AxU89Sfy3FUpAhwIVs/kDSdaXJmzYPE=";
+            cargoHash = "sha256-emWl0cLVSYsKjrsVar6oJUeUIG0W38cFEZwMMBrZSWo=";
 
             buildInputs = with pkgs; [
               libGL

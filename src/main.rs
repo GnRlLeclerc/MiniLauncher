@@ -111,9 +111,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         });
 
         ui.global::<LauncherState>()
-            .on_is_alphanumeric(|c| c.as_str().chars().all(|ch| ch.is_alphanumeric()));
-
-        ui.global::<LauncherState>()
             .on_update_entries(move |input| {
                 // Match normalized entries with the input by comparing keywords
                 // Two steps:
