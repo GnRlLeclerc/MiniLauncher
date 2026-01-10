@@ -3,7 +3,6 @@
   "$id": "https://example.com/schemas/colors.json",
   "title": "Colors",
   "type": "object",
-  "required": ["background", "text", "border", "accent", "highlight"],
   "additionalProperties": false,
   "properties": {
     "background": { "$ref": "#/$defs/rgbHex" },

@@ -52,4 +52,14 @@ pub struct Args {
     /// Use custom entries from stdin (json only, prefer using nushell scripts)
     #[arg(short, long)]
     pub stdin: bool,
+    /// Start the background daemon (for use in WM startup)
+    #[arg(short, long)]
+    pub daemon: bool,
+    /// Run the launcher without starting or connecting to the background daemon
+    /// (for debugging purposes)
+    #[arg(short, long)]
+    pub no_daemon: bool,
+    /// Stop the background daemon if running
+    #[arg(short, long)]
+    pub quit: bool,
 }
