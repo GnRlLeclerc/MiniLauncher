@@ -4,25 +4,17 @@
 use std::error::Error;
 
 use clap::Parser;
-use slint::ComponentHandle;
 
-use crate::{
-    callbacks::register_callbacks,
-    cli::Args,
-    config::{load_config, watch_config},
-    daemon::run_daemon,
-};
+use crate::{cli::Args, daemon::run_daemon};
 
-mod apps;
-mod callbacks;
 mod cli;
 mod commands;
 mod config;
 mod daemon;
 mod entries;
-mod freedesktop;
 mod ipc;
 mod paths;
+mod ui;
 
 /// Slint UI modules
 mod ui {
@@ -43,19 +35,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else if args.stdin {
             entries = entries::read_from_stdin();
         } else {
-            entries = apps::get_app_entries();
+            entries = entries::get_app_entries();
         }
 
-        let ui = ui::Launcher::new()?;
-        load_config(&ui).await;
-        register_callbacks(entries, &ui);
-
-        let colors = config::read_colors();
-        if let Some(colors) = colors {
-            apply_colors(&ui, &colors);
-        }
-
-        ui.run()?;
+        ui::run_ui(entries, false);
     }
 
     Ok(())

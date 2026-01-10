@@ -6,9 +6,10 @@ use rkyv::{self, rancor::Error, vec::ArchivedVec};
 
 use crate::{
     entries::{ArchivedEntry, Entry},
-    freedesktop::freedesktop_entries,
     paths,
 };
+
+use super::freedesktop::freedesktop_entries;
 
 /// Get app entries either from cache or regenerate them from scratch.
 /// Used when running the launcher in app launcher mode.

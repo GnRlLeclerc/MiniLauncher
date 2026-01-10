@@ -1,19 +1,23 @@
 //! App callbacks
 
+use log::error;
 use nucleo_matcher::pattern::{CaseMatching, Normalization, Pattern};
 use nucleo_matcher::{Config, Matcher};
-use slint::{ModelRc, VecModel};
+use slint::{ModelRc, VecModel, run_event_loop_until_quit};
 use unidecode::unidecode;
 
 use crate::commands::{self, Command};
+use crate::config::{load_config, watch_config};
 use crate::entries::Entry;
-use crate::ui::*;
 use std::collections::HashMap;
 use std::iter;
 use std::process::exit;
 use std::rc::Rc;
 
 const MAX_DISPLAYED_ENTRIES: usize = 5;
+
+// Include Slint codegen components here
+slint::include_modules!();
 
 /// Register app callbacks
 pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {

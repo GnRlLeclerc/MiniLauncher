@@ -6,6 +6,11 @@ use std::{
     path::Path,
 };
 
+mod apps;
+mod freedesktop;
+
+pub use apps::get_app_entries;
+
 /// An entry in the app launcher
 #[derive(
     Debug, Clone, Default, rkyv::Serialize, rkyv::Deserialize, rkyv::Archive, serde::Deserialize,

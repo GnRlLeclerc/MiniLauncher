@@ -13,6 +13,8 @@ pub enum Action {
     Run,
     /// Run with custom entries (pass the entries)
     RunCustom(Vec<Entry>),
+    /// Quit the daemon
+    Quit,
 }
 
 /// Possible responses from the daemon

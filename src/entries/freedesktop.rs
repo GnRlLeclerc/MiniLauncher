@@ -1,6 +1,7 @@
 //! Parsing of freedesktop entries for app launching
 //! Taken and adapted from https://github.com/FivEawE/desktopentries/blob/master/src/main.rs
 
+use log::{info, warn};
 use std::{
     collections::HashMap,
     env,
@@ -36,7 +37,7 @@ pub fn freedesktop_entries() -> HashMap<String, Entry> {
         }
         Err(_) => {
             let base_path = "/usr/share/applications/";
-            eprintln!("$XDG_DATA_DIRS not set, defaulting to {}", base_path);
+            info!("$XDG_DATA_DIRS not set, defaulting to {}", base_path);
             let path = Path::new(base_path);
             add_entries_from_path(&path, &mut entries, &parser);
         }
@@ -62,7 +63,7 @@ fn add_entries_from_path(
                 let path = file.path();
 
                 let _ = parser.parse(&path, entries).inspect_err(|_| {
-                    eprintln!("Failed to parse file: {:?}", path);
+                    warn!("Failed to parse freedesktop file: {:?}", path);
                 });
             });
     }
