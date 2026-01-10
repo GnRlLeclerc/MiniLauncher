@@ -14,7 +14,7 @@ use sys_locale::get_locale;
 use crate::entries::Entry;
 
 /// Get freedesktop entries (filtering out no display ones)
-pub fn freedesktop_entries() -> HashMap<String, Entry> {
+pub fn freedesktop_entries() -> Vec<Entry> {
     // Get system locale for translations
     let locale = get_locale();
     let de = env::var("XDG_CURRENT_DESKTOP").ok();
@@ -43,7 +43,7 @@ pub fn freedesktop_entries() -> HashMap<String, Entry> {
         }
     };
 
-    entries
+    entries.into_values().collect()
 }
 
 /// Add all entries from a given path to the entries vector

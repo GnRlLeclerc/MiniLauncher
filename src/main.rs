@@ -37,7 +37,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         } else if args.stdin {
             entries = entries::read_from_stdin();
         } else {
-            entries = entries::get_app_entries();
+            entries = entries::freedesktop_entries();
         }
 
         ui::run_ui(entries, !args.no_daemon, args.daemon);

@@ -6,15 +6,13 @@ use std::{
     path::Path,
 };
 
-mod apps;
 mod freedesktop;
+mod icons;
 
-pub use apps::get_app_entries;
+pub use freedesktop::freedesktop_entries;
 
 /// An entry in the app launcher
-#[derive(
-    Debug, Clone, Default, rkyv::Serialize, rkyv::Deserialize, rkyv::Archive, serde::Deserialize,
-)]
+#[derive(Debug, Clone, Default, serde::Deserialize, serde::Serialize)]
 pub struct Entry {
     /// Entry name
     pub name: String,
@@ -31,6 +29,7 @@ pub struct Entry {
     pub terminal: bool,
 }
 
+/// Read entries from a file (TOML or JSON)
 pub fn read_from_file(path: &Path) -> Vec<Entry> {
     let contents =
         fs::read_to_string(path).expect(&format!("Failed to read entries file {:?}", path));
