@@ -48,6 +48,8 @@ export component LauncherInput inherits Rectangle {
             if LauncherState.entries.length > 0 {
                 let selected_entry = LauncherState.entries[LauncherState.selected_index];
                 LauncherState.run_command(selected_entry.name);
+                input.text = "";
+                LauncherState.selected_index = 0;
             }
         }
 

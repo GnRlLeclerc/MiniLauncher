@@ -5,7 +5,10 @@ use std::error::Error;
 
 use clap::Parser;
 
-use crate::{cli::Args, daemon::run_daemon};
+use crate::{
+    cli::Args,
+    ipc::{Action, send_action},
+};
 
 mod cli;
 mod commands;
@@ -16,17 +19,16 @@ mod ipc;
 mod paths;
 mod ui;
 
-/// Slint UI modules
-mod ui {
-    slint::include_modules!();
-}
-
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let args = Args::parse();
 
     if args.refresh {
-        apps::regenerate_cache();
+        send_action(Action::Refresh).expect("Daemon is not running");
+        return Ok(());
+    } else if args.quit {
+        send_action(Action::Quit).expect("Daemon is not running");
+        return Ok(());
     } else {
         let mut entries = vec![];
 
@@ -38,7 +40,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             entries = entries::get_app_entries();
         }
 
-        ui::run_ui(entries, false);
+        ui::run_ui(entries, !args.no_daemon, args.daemon);
     }
 
     Ok(())

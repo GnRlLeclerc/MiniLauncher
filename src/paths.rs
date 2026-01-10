@@ -1,4 +1,6 @@
 //! Application cache and configuration paths.
+//! No need to cache these values, they are cheap to compute
+//! and called a negligible amount of times anyway.
 
 use std::path::PathBuf;
 

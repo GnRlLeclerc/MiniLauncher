@@ -1,8 +1,13 @@
 //! Communication with the minilauncher daemon
 
+use std::{
+    io::{self, Write},
+    os::unix::net::UnixStream,
+};
+
 use serde::{Deserialize, Serialize};
 
-use crate::entries::Entry;
+use crate::{daemon::socket_path, entries::Entry};
 
 /// Launcher IPC actions
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -17,11 +22,20 @@ pub enum Action {
     Quit,
 }
 
-/// Possible responses from the daemon
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum Response {
-    /// Acknowledgement of action received
-    Ack,
-    /// Error occurred
-    Error(String),
+/// Send an action to the background daemon.
+/// Returns an error if the daemon is not running.
+pub fn send_action(action: Action) -> io::Result<()> {
+    let path = socket_path();
+
+    match UnixStream::connect(&path) {
+        Ok(mut stream) => {
+            let bytes = serde_json::to_vec(&action).expect("Failed to serialize action");
+            stream
+                .write_all(&bytes)
+                .expect("Failed to send action to daemon");
+
+            Ok(())
+        }
+        Err(err) => Err(err),
+    }
 }

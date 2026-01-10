@@ -3,21 +3,59 @@
 use log::error;
 use nucleo_matcher::pattern::{CaseMatching, Normalization, Pattern};
 use nucleo_matcher::{Config, Matcher};
-use slint::{ModelRc, VecModel, run_event_loop_until_quit};
+use slint::{ModelRc, VecModel, run_event_loop, run_event_loop_until_quit};
 use unidecode::unidecode;
 
 use crate::commands::{self, Command};
 use crate::config::{load_config, watch_config};
+use crate::daemon::run_daemon;
 use crate::entries::Entry;
+use crate::ipc::{Action, send_action};
 use std::collections::HashMap;
 use std::iter;
-use std::process::exit;
 use std::rc::Rc;
 
 const MAX_DISPLAYED_ENTRIES: usize = 5;
 
 // Include Slint codegen components here
 slint::include_modules!();
+
+/// Set up and run the launcher UI
+/// - `daemon`: whether to start the daemon in the background
+/// - `hidden`: whether to start the UI hidden (daemon only)
+pub fn run_ui(entries: Vec<Entry>, daemon: bool, hidden: bool) {
+    let launcher = Launcher::new().expect("Failed to create launcher UI");
+
+    register_callbacks(entries, &launcher);
+    load_config(&launcher); // Load initial configuration
+
+    // Store the watcher as a guard to keep it alive.
+    let _watcher = watch_config(&launcher)
+        .inspect_err(|err| error!("Could not start configuration file watcher: {}", err));
+
+    // BUG: https://github.com/slint-ui/slint/issues/10341
+    if !hidden {
+        launcher.show().expect("Failed to show launcher UI");
+    } else {
+        // NOTE: lazy workaround, for now start the launcher even in daemon mode
+        launcher.show().expect("Failed to hide launcher UI");
+    }
+
+    if daemon {
+        if run_daemon(launcher.as_weak()) {
+            // A daemon is already running, send a command and exit
+            send_action(Action::Run).expect("Failed to send Run action to daemon");
+            return;
+        }
+    }
+
+    // Run the ui event loop
+    match daemon {
+        true => run_event_loop_until_quit(),
+        false => run_event_loop(),
+    }
+    .expect("Failed to run event loop");
+}
 
 /// Register app callbacks
 pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {
@@ -65,14 +103,13 @@ pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {
     });
 
     // Register command running callback
+    let handle = launcher.as_weak();
     launcher
         .global::<LauncherState>()
         .on_run_command(move |name| {
             if let Some(cmd) = entry_commands.get(name.as_str()) {
                 commands::run(cmd);
-
-                // Close the launcher after running the command
-                exit(0);
+                let _ = handle.unwrap().hide();
             }
         });
 
