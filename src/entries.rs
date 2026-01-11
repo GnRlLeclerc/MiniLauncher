@@ -21,7 +21,7 @@ pub struct Entry {
     /// Optional entry picture
     pub icon: Option<String>,
     /// Optional entry description
-    pub description: Option<String>,
+    pub comment: Option<String>,
     /// Keywords for filtering
     pub keywords: Option<Vec<String>>,
     /// Whether this entry should be executed within a new shell window (TUI)

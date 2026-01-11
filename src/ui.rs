@@ -85,7 +85,7 @@ pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {
         launcher_entries.push(LauncherEntry {
             name: e.name.into(),
             icon: e.icon.unwrap_or_default().into(),
-            description: e.description.unwrap_or_default().into(),
+            comment: e.comment.unwrap_or_default().into(),
         });
 
         // Map keywords to entry index

@@ -1,11 +1,11 @@
 //! Parsing of freedesktop entries for app launching
 //! Taken and adapted from https://github.com/FivEawE/desktopentries/blob/master/src/main.rs
 
-use log::{info, warn};
+use ini::{Ini, Properties};
+use log::info;
 use std::{
     collections::HashMap,
     env,
-    io::{self, BufRead},
     path::{Path, PathBuf},
 };
 
@@ -15,16 +15,8 @@ use crate::entries::Entry;
 
 /// Get freedesktop entries (filtering out no display ones)
 pub fn freedesktop_entries() -> Vec<Entry> {
-    // Get system locale for translations
-    let locale = get_locale();
-    let de = env::var("XDG_CURRENT_DESKTOP").ok();
-
-    let code: Option<String> = locale
-        .map(|l| l.split('-').next().map(|l| l.to_string()))
-        .flatten();
-
     let mut entries: HashMap<String, Entry> = HashMap::new();
-    let parser = FreedesktopParser::new(code, de);
+    let parser = FreedesktopParser::new();
 
     let xdg_data_dirs = env::var("XDG_DATA_DIRS");
     match xdg_data_dirs {
@@ -62,9 +54,12 @@ fn add_entries_from_path(
             .for_each(|file| {
                 let path = file.path();
 
-                let _ = parser.parse(&path, entries).inspect_err(|_| {
-                    warn!("Failed to parse freedesktop file: {:?}", path);
-                });
+                match parser.parse(&path) {
+                    Some(entry) => {
+                        entries.insert(entry.name.clone(), entry);
+                    }
+                    None => (),
+                }
             });
     }
 }
@@ -74,144 +69,96 @@ struct FreedesktopParser {
     locale_name_key: Option<String>,
     /// Precomputed key for the locale comment
     locale_comment_key: Option<String>,
+    /// Precomputed key for the locale keywords
+    locale_keywords_key: Option<String>,
     /// Desktop environment (to be checked against "NotShowIn")
     desktop_environment: Option<String>,
 }
 
 impl FreedesktopParser {
-    pub fn new(locale_code: Option<String>, desktop_environment: Option<String>) -> Self {
+    pub fn new() -> Self {
+        let locale_code = get_locale().and_then(|l| l.split('-').next().map(|s| s.to_string()));
         let locale_name_key = locale_code.as_ref().map(|code| format!("Name[{code}]"));
         let locale_comment_key = locale_code.as_ref().map(|code| format!("Comment[{code}]"));
+        let locale_keywords_key = locale_code.as_ref().map(|code| format!("Keywords[{code}]"));
+        let desktop_environment = env::var("XDG_CURRENT_DESKTOP")
+            .ok()
+            .map(|s| s.to_lowercase());
         Self {
             locale_name_key,
             locale_comment_key,
+            locale_keywords_key,
             desktop_environment,
         }
     }
 
+    /// Check whether an entry should be shown or not
+    fn show(&self, entry: &Properties) -> bool {
+        if entry.get("NoDisplay").map_or(false, |s| s == "true") {
+            return false;
+        }
+
+        if let Some(de) = &self.desktop_environment {
+            if entry
+                .get("NotShowIn")
+                .map_or(false, |s| s.to_lowercase().contains(de))
+            {
+                return false;
+            }
+            if entry
+                .get("OnlyShowIn")
+                .map_or(false, |s| !s.to_lowercase().contains(de))
+            {
+                return true;
+            }
+        }
+
+        true
+    }
+
     /// Parse a Freedesktop file and add the entries to the list
-    pub fn parse(&self, path: &Path, entries: &mut HashMap<String, Entry>) -> io::Result<()> {
-        let mut entry = Entry::default();
-        let mut valid = false;
+    fn parse(&self, path: &Path) -> Option<Entry> {
+        let config = Ini::load_from_file(path).ok()?;
+        let section = config.section(Some("Desktop Entry"))?;
 
-        let file = std::fs::File::open(path)?;
-        let reader = io::BufReader::new(file);
-
-        for line in reader.lines() {
-            let line = line?;
-            let line = line.trim();
-
-            // Ignore comments
-            if line.starts_with('#') {
-                continue;
-            }
-
-            // Start a new entry if the header is found
-            if line == "[Desktop Entry]" {
-                let e = entry;
-                entry = Entry::default(); // Reset for the new entry
-                if valid {
-                    entries.insert(e.name.clone(), e);
-                }
-                valid = true;
-                continue;
-            } else if line.starts_with("[") {
-                let e = entry;
-                entry = Entry::default(); // Reset for the new entry
-                if valid {
-                    entries.insert(e.name.clone(), e);
-                }
-                // This is not a desktop entry, but an action, etc
-                valid = false;
-            }
-
-            if !valid {
-                continue;
-            }
-
-            let mut values = line.split('=');
-            let key = values.next();
-            let value = values.collect::<Vec<&str>>().join("=");
-
-            let key = match key {
-                Some(key) => key,
-                None => continue,
-            };
-
-            let value = match value.is_empty() {
-                false => value,
-                true => continue,
-            };
-
-            // Compare locale key
-            if let Some(name_key) = self.locale_name_key.as_ref() {
-                if key == name_key {
-                    entry.name = value.to_string();
-                }
-            }
-            // Compare locale comment key
-            if let Some(comment_key) = self.locale_comment_key.as_ref() {
-                if key == comment_key {
-                    entry.description = Some(value.to_string());
-                }
-            }
-
-            // Match other predefined keys
-            match key {
-                "Name" => {
-                    if entry.name.is_empty() {
-                        entry.name = value.to_string();
-                    }
-                }
-                "Exec" => entry.command = value.to_string(),
-                "Comment" => {
-                    if entry.command.is_empty() {
-                        entry.command = value.to_string();
-                    }
-                }
-                "Keywords" => {
-                    entry.keywords = Some(
-                        value
-                            .split(';')
-                            .filter(|s| !s.is_empty())
-                            .map(|s| s.to_string())
-                            .collect(),
-                    );
-                }
-                "Icon" => entry.icon = Some(value.to_string()),
-                "NoDisplay" => {
-                    if value == "true" {
-                        valid = false;
-                    }
-                }
-                "NotShowIn" => {
-                    if let Some(de) = self.desktop_environment.as_ref() {
-                        if value.to_lowercase().contains(&de.to_lowercase()) {
-                            valid = false;
-                        }
-                    }
-                }
-                "OnlyShowIn" => {
-                    if let Some(de) = self.desktop_environment.as_ref() {
-                        if !value.to_lowercase().contains(&de.to_lowercase()) {
-                            valid = false;
-                        }
-                    }
-                }
-                "Terminal" => {
-                    if value == "true" {
-                        entry.terminal = true;
-                    }
-                }
-                _ => {}
-            }
+        if !self.show(section) {
+            return None;
         }
 
-        // Add the last entry
-        if valid {
-            entries.insert(entry.name.clone(), entry);
-        }
+        let terminal = section.get("Terminal").map_or(false, |s| s == "true");
+        let icon = section.get("Icon").map(|s| s.to_string());
+        let command = section.get("Exec")?.to_string();
+        let name = self
+            .locale_name_key
+            .as_ref()
+            .and_then(|key| section.get(key))
+            .or_else(|| section.get("Name"))?
+            .to_string();
+        let comment = self
+            .locale_comment_key
+            .as_ref()
+            .and_then(|key| section.get(key))
+            .or_else(|| section.get("Comment"))
+            .map(|s| s.to_string());
+        let keywords = self
+            .locale_keywords_key
+            .as_ref()
+            .and_then(|key| section.get(key))
+            .or_else(|| section.get("Keywords"))
+            .map(|s| {
+                s.split(';')
+                    .filter(|s| !s.is_empty())
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+            });
 
-        Ok(())
+        Some(Entry {
+            name,
+            command,
+            icon,
+            comment,
+            keywords,
+            terminal,
+        })
     }
 }
