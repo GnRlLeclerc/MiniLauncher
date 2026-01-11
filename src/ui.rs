@@ -3,7 +3,7 @@
 use log::error;
 use nucleo_matcher::pattern::{CaseMatching, Normalization, Pattern};
 use nucleo_matcher::{Config, Matcher};
-use slint::{ModelRc, VecModel, run_event_loop, run_event_loop_until_quit};
+use slint::{Image, ModelRc, VecModel, run_event_loop, run_event_loop_until_quit};
 use unidecode::unidecode;
 
 use crate::commands::{self, Command};
@@ -84,7 +84,10 @@ pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {
         // Add the display entry
         launcher_entries.push(LauncherEntry {
             name: e.name.into(),
-            icon: e.icon.unwrap_or_default().into(),
+            icon: e
+                .icon
+                .and_then(|path| Image::load_from_path(&path).ok())
+                .unwrap_or_default(),
             comment: e.comment.unwrap_or_default().into(),
         });
 

@@ -3,11 +3,10 @@
 use std::{
     fs,
     io::{self, Read},
-    path::Path,
+    path::{Path, PathBuf},
 };
 
 mod freedesktop;
-mod icons;
 
 pub use freedesktop::freedesktop_entries;
 
@@ -19,7 +18,7 @@ pub struct Entry {
     /// Entry command (ran if the entry is selected)
     pub command: String,
     /// Optional entry picture
-    pub icon: Option<String>,
+    pub icon: Option<PathBuf>,
     /// Optional entry description
     pub comment: Option<String>,
     /// Keywords for filtering

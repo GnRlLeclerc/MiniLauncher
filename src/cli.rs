@@ -43,7 +43,7 @@ fn get_styles() -> builder::Styles {
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None, styles = get_styles())]
 pub struct Args {
-    /// Refresh the application cache
+    /// Refresh the application cache (also refreshes icon theme)
     #[arg(short, long)]
     pub refresh: bool,
     /// Use custom entries from a toml or json file
