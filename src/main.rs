@@ -24,10 +24,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     let args = Args::parse();
 
     if args.refresh {
-        send_action(Action::Refresh).expect("Daemon is not running");
+        if let Err(_) = send_action(Action::Refresh) {
+            eprintln!("Daemon is not running");
+        }
         return Ok(());
     } else if args.quit {
-        send_action(Action::Quit).expect("Daemon is not running");
+        if let Err(_) = send_action(Action::Quit) {
+            eprintln!("Daemon is not running");
+        }
         return Ok(());
     } else {
         let mut entries = vec![];
