@@ -23,6 +23,17 @@ export component LauncherInput inherits Rectangle {
         visible: input.text.is-empty;
     }
 
+    function select-next() {
+        if LauncherState.selected_index < LauncherState.entries.length - 1 {
+            LauncherState.selected_index += 1;
+        }
+    }
+    function select-previous() {
+        if LauncherState.selected_index > 0 {
+            LauncherState.selected_index = LauncherState.selected_index - 1;
+        }
+    }
+
     input := TextInput {
         // Styling
         color: LauncherColors.text;
@@ -56,15 +67,18 @@ export component LauncherInput inherits Rectangle {
         // Handle arrow keys
         key-pressed(event) => {
             if event.text == Key.UpArrow {
-                if LauncherState.selected_index > 0 {
-                    LauncherState.selected_index = LauncherState.selected_index - 1;
-                }
+                select-previous();
                 return accept;
             } else if event.text == Key.DownArrow {
-                if LauncherState.selected_index < LauncherState.entries.length - 1 {
-                    LauncherState.selected_index += 1;
-                }
+                select-next();
                 return accept;
+            } else if event.text == Key.Escape {
+                LauncherState.hide();
+                return accept;
+            } else if event.modifiers.control && event.text == "j" {
+                select-next();
+            } else if event.modifiers.control && event.text == "k" {
+                select-previous();
             }
             reject
         }

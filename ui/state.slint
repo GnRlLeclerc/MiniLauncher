@@ -13,7 +13,7 @@ export global LauncherState {
     in-out property <int> selected_index: 0;
     callback update_entries(input: string);
     callback run_command(name: string);
-    callback is_alphanumeric(c: string) -> bool; // needed for proper placeholder handling
+    callback hide();
 }
 
 // Color scheme

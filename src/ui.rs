@@ -161,4 +161,9 @@ pub fn register_callbacks(entries: Vec<Entry>, launcher: &Launcher) {
                 .global::<LauncherState>()
                 .set_entries(ModelRc::from(Rc::new(VecModel::from(entries))));
         });
+
+    let handle = launcher.as_weak();
+    launcher.global::<LauncherState>().on_hide(move || {
+        let _ = handle.unwrap().hide();
+    });
 }
