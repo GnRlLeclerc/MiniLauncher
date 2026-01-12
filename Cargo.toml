@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 anstyle = "1.0.13"
 clap = { version = "4.5.54", features = ["derive"] }
+ctrlc = { version = "3.5.1", features = ["termination"] }
 dirs-next = "2.0.0"
 env_logger = "0.11.8"
 freedesktop-desktop-entry = "0.8.1"

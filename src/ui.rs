@@ -1,14 +1,16 @@
 //! App callbacks
 
+use std::fs;
+
 use log::error;
-use slint::{run_event_loop, run_event_loop_until_quit};
+use slint::{quit_event_loop, run_event_loop, run_event_loop_until_quit};
 
 use crate::commands::{self};
 use crate::config::{load_config_and_colors, watch_config};
 use crate::daemon::run_daemon;
 use crate::entries::Entry;
 use crate::freedesktop::freedesktop_entries;
-use crate::ipc::{Action, send_action};
+use crate::ipc::{Action, send_action, socket_path};
 use crate::state::{invoke_with_appstate, set_ui_thread};
 
 // Include Slint codegen components here
@@ -35,6 +37,15 @@ pub fn run_ui(custom: Option<Vec<Entry>>, daemon: bool, hidden: bool) {
             };
             return;
         }
+    }
+
+    // Properly handle termination signals
+    // Quitting the event loop this way means that the run_ui function will complete,
+    // deleting the daemon socket file as well, properly cleaning up everything.
+    if let Err(err) = ctrlc::set_handler(|| {
+        let _ = quit_event_loop();
+    }) {
+        error!("Could not set termination signal handler: {}", err);
     }
 
     set_ui_thread(&launcher); // Mark this thread as the UI thread for the global app state
@@ -75,6 +86,11 @@ pub fn run_ui(custom: Option<Vec<Entry>>, daemon: bool, hidden: bool) {
         false => run_event_loop(),
     }
     .expect("Failed to run event loop");
+
+    if daemon {
+        // Cleanup the socket on exit
+        let _ = fs::remove_file(socket_path());
+    }
 }
 
 /// Register app callbacks
