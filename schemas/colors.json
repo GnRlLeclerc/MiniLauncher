@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://example.com/schemas/colors.json",
+  "$id": "https://github.com/GnRlLeclerc/MiniLauncher/blob/master/schemas/colors.json",
   "title": "Colors",
   "type": "object",
   "additionalProperties": false,

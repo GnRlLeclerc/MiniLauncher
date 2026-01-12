@@ -10,8 +10,8 @@ use notify_debouncer_full::{
 };
 use slint::ComponentHandle;
 
-use super::{apply::apply_colors, colors::Colors};
-use crate::ui::Launcher;
+use super::{apply::apply_colors, colors::Colors, config::Config};
+use crate::{config::apply::apply_config, ui::Launcher};
 
 pub fn config_dir() -> PathBuf {
     dirs_next::config_dir()
@@ -23,12 +23,18 @@ pub fn colors_file() -> PathBuf {
     config_dir().join("colors.toml")
 }
 
+pub fn config_file() -> PathBuf {
+    config_dir().join("config.toml")
+}
+
 /// Load and apply configuration from files.
 /// If no config is found, apply the default one.
 /// Only done at startup.
-pub fn load_config(launcher: &Launcher) {
+pub fn load_config_and_colors(launcher: &Launcher) {
     let colors = load_colors().unwrap_or_default();
     apply_colors(launcher, &colors);
+    let config = load_config().unwrap_or_default();
+    apply_config(launcher, &config);
 }
 
 /// Load colors configuration from file.
@@ -47,6 +53,22 @@ fn load_colors() -> Option<Colors> {
     Some(colors)
 }
 
+/// Load config from file.
+/// Returns None on error.
+fn load_config() -> Option<Config> {
+    let config_file = config_file();
+
+    let contents = fs::read_to_string(config_file)
+        .inspect_err(|err| warn!("Could not read configuration file: {}", err))
+        .ok()?;
+
+    let config: Config = toml::from_str(&contents)
+        .inspect_err(|err| warn!("Could not parse configuration file: {}", err))
+        .ok()?;
+
+    Some(config)
+}
+
 /// Watch and reload configuration files on changes.
 /// Returns errors on startup only (not fatal, but config won't be watched).
 /// Store the returned watcher to keep it alive.
@@ -63,6 +85,7 @@ pub fn watch_config(
             match events {
                 Ok(events) => {
                     let mut colors_changed = false;
+                    let mut config_changed = false;
                     for event in events {
                         // Ignore non-modifying events
                         match event.kind {
@@ -78,6 +101,9 @@ pub fn watch_config(
                                     "colors.toml" => {
                                         colors_changed = true;
                                     }
+                                    "config.toml" => {
+                                        config_changed = true;
+                                    }
                                     _ => {}
                                 }
                             }
@@ -91,6 +117,16 @@ pub fn watch_config(
                                 apply_colors(&launcher, &colors);
                             }) {
                                 warn!("Failed to apply new color configuration: {}", err);
+                            }
+                        }
+                    }
+                    if config_changed {
+                        debug!("General configuration changed, reloading");
+                        if let Some(config) = load_config() {
+                            if let Err(err) = launcher.upgrade_in_event_loop(move |launcher| {
+                                apply_config(&launcher, &config);
+                            }) {
+                                warn!("Failed to apply new general configuration: {}", err);
                             }
                         }
                     }

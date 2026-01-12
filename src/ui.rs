@@ -4,7 +4,7 @@ use log::error;
 use slint::{run_event_loop, run_event_loop_until_quit};
 
 use crate::commands::{self};
-use crate::config::{load_config, watch_config};
+use crate::config::{load_config_and_colors, watch_config};
 use crate::daemon::run_daemon;
 use crate::entries::Entry;
 use crate::freedesktop::freedesktop_entries;
@@ -39,7 +39,7 @@ pub fn run_ui(custom: Option<Vec<Entry>>, daemon: bool, hidden: bool) {
 
     set_ui_thread(&launcher); // Mark this thread as the UI thread for the global app state
     register_callbacks(&launcher);
-    load_config(&launcher); // Load initial configuration
+    load_config_and_colors(&launcher); // Load initial configuration
 
     // Initialize the data.
     // Always load the apps (even in --no-daemon mode, which is for debug)

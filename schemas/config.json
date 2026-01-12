@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GnRlLeclerc/MiniLauncher/blob/master/schemas/config.json",
+  "title": "Config",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "animation": {
+      "type": "integer",
+      "description": "Animation duration in milliseconds"
+    },
+    "border": {
+      "type": "integer",
+      "description": "Border thickness in pixels"
+    },
+    "radius": {
+      "type": "integer",
+      "description": "Border radius in pixels"
+    },
+    "mode": {
+      "type": "string",
+      "description": "Display layout",
+      "enum": ["full", "compact", "lines", "icons"]
+    },
+    "max_entries": {
+      "type": "integer",
+      "description": "Maximum number of entries to display"
+    }
+  }
+}
