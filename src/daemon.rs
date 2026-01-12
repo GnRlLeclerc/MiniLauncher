@@ -1,22 +1,51 @@
 //! Background daemon process
 
 use log::{error, info, warn};
-use slint::{ComponentHandle, Weak, quit_event_loop};
+use slint::{ComponentHandle, Weak, invoke_from_event_loop, quit_event_loop};
 use std::{
     fs,
     io::{self, Read},
     os::unix::net::{UnixListener, UnixStream},
-    path::{Path, PathBuf},
+    path::Path,
     thread,
 };
 
-use crate::{ipc::Action, ui::Launcher};
+use crate::{
+    entries::Entry,
+    freedesktop::freedesktop_entries,
+    ipc::{Action, socket_path},
+    state::invoke_with_appstate,
+    ui::Launcher,
+};
 
-pub fn socket_path() -> PathBuf {
-    let uid = nix::unistd::getuid();
-    PathBuf::from("/run/user")
-        .join(uid.to_string())
-        .join("minilauncher.sock")
+/// Set the launcher entries for a new run, and then show the launcher UI.
+/// If an error occurs, silently fails without crashing the daemon.
+fn run_launcher_with_custom(launcher: &Weak<Launcher>, custom: Option<Vec<Entry>>) {
+    // Ignore event loop errors.
+    // If there is no event loop, the launcher is currently exiting.
+    let _ = launcher.upgrade_in_event_loop(|launcher| {
+        // Do not process actions while the launcher is already visible
+        if launcher.window().is_visible() {
+            info!("Launcher is already visible, ignoring Run action");
+            return;
+        }
+        invoke_with_appstate(|state| {
+            // Set custom entries
+            if let Err(_) = state.set_custom_entries(custom) {
+                error!("Failed to set custom entries: state custom entries were borrowed");
+                return;
+            }
+            // Reset launcher entries
+            if let Err(_) = state.set_launcher_entries(&launcher) {
+                error!("Failed to set launcher entries: state launcher entries were borrowed");
+                return;
+            }
+            if let Err(err) = launcher.show() {
+                error!("Failed to show launcher UI: {}", err);
+                return;
+            }
+        });
+    });
 }
 
 /// Run the background daemon.
@@ -46,29 +75,20 @@ pub fn run_daemon(launcher: Weak<Launcher>) -> bool {
                 match action {
                     Action::Refresh => {
                         info!("Received Refresh action");
-                        // TODO: refresh in memory app cache
+                        let apps = freedesktop_entries();
+                        let _ = invoke_from_event_loop(move || {
+                            if let Err(_) = invoke_with_appstate(|state| state.set_apps(apps)) {
+                                warn!("Failed to refresh entries: state apps were borrowed");
+                            }
+                        });
                     }
                     Action::Run => {
                         info!("Received Run action");
-                        // Ignore event loop errors.
-                        // If there is no event loop, the launcher is currently exiting.
-                        let _ = launcher.upgrade_in_event_loop(|launcher| {
-                            if let Err(err) = launcher.show() {
-                                error!("Failed to show launcher UI: {}", err);
-                            }
-                        });
+                        run_launcher_with_custom(&launcher, None);
                     }
                     Action::RunCustom(entries) => {
                         info!("Received RunCustom action with {} entries", entries.len());
-                        // TODO: swap out the launcher entries, then show the launcher
-
-                        // Ignore event loop errors.
-                        // If there is no event loop, the launcher is currently exiting.
-                        let _ = launcher.upgrade_in_event_loop(|launcher| {
-                            if let Err(err) = launcher.show() {
-                                error!("Failed to show launcher UI: {}", err);
-                            }
-                        });
+                        run_launcher_with_custom(&launcher, Some(entries));
                     }
                     Action::Quit => {
                         info!("Received Quit action, shutting down the daemon.");
@@ -108,7 +128,7 @@ fn process_stream(stream: Result<UnixStream, io::Error>) -> Option<Action> {
                 }
                 Err(e) => {
                     warn!("Error reading from stream: {}", e);
-                    return None;
+                    None
                 }
             }
         }

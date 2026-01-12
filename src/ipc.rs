@@ -3,11 +3,19 @@
 use std::{
     io::{self, Write},
     os::unix::net::UnixStream,
+    path::PathBuf,
 };
 
 use serde::{Deserialize, Serialize};
 
-use crate::{daemon::socket_path, entries::Entry};
+use crate::entries::Entry;
+
+pub fn socket_path() -> PathBuf {
+    let uid = nix::unistd::getuid();
+    PathBuf::from("/run/user")
+        .join(uid.to_string())
+        .join("minilauncher.sock")
+}
 
 /// Launcher IPC actions
 #[derive(Debug, Clone, Serialize, Deserialize)]

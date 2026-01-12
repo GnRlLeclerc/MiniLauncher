@@ -1,4 +1,5 @@
-import { LauncherState, LauncherColors } from "state.slint";
+import { LauncherState } from "state.slint";
+import { LauncherColors } from "colors.slint";
 
 // Main input component
 export component LauncherInput inherits Rectangle {
@@ -15,7 +16,7 @@ export component LauncherInput inherits Rectangle {
 
     // Placeholder underlay
     Text {
-        horizontal-alignment: TextHorizontalAlignment.left;
+        horizontal-alignment: left;
         text: "Enter a command...";
         color: LauncherColors.border;
         x: parent.x + 5px; // left padding
@@ -40,7 +41,7 @@ export component LauncherInput inherits Rectangle {
         text: "";
         x: parent.x + 5px; // left padding
         width: parent.width - 10px;
-        vertical-alignment: TextVerticalAlignment.center;
+        vertical-alignment: center;
 
         // Update entries on text change
         edited() => {

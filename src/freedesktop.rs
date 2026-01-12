@@ -1,7 +1,6 @@
 //! Parsing of freedesktop entries for app launching
 
 use linicon_theme::get_icon_theme;
-use unidecode::unidecode;
 
 use crate::entries::Entry;
 
@@ -24,7 +23,6 @@ fn get_with_locale<'a>(group: &'a Group, key: &str, locales: &[String]) -> Optio
 /// Process a single freedesktop entry.
 /// Returns None if some critical fields are missing,
 /// or if the entry should not be displayed
-/// Entry keywords are preprocessed to be lowercase and unaccented.
 fn process_entry(
     entry: &DesktopEntry,
     locales: &[String],
@@ -49,7 +47,7 @@ fn process_entry(
     let keywords = get_with_locale(entry, "Keywords", locales).map(|s| {
         s.split(';')
             .filter(|s| !s.is_empty())
-            .map(|s| unidecode(s).to_lowercase().to_string())
+            .map(|s| s.to_string())
             .collect::<Vec<_>>()
     });
     let terminal = entry.0.get("Terminal").map_or(false, |s| s.0 == "true");

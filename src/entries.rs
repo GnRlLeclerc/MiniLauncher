@@ -6,10 +6,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-mod freedesktop;
-
-pub use freedesktop::freedesktop_entries;
-
 /// An entry in the app launcher
 #[derive(Debug, Clone, Default, serde::Deserialize, serde::Serialize)]
 pub struct Entry {

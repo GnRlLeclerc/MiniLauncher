@@ -1,6 +1,6 @@
 //! App configuration loading and watching
 
-use std::{fs, time::Duration};
+use std::{fs, path::PathBuf, time::Duration};
 
 use log::{debug, trace, warn};
 use notify::RecursiveMode;
@@ -11,7 +11,17 @@ use notify_debouncer_full::{
 use slint::ComponentHandle;
 
 use super::{apply::apply_colors, colors::Colors};
-use crate::{paths::config_dir, ui::Launcher};
+use crate::ui::Launcher;
+
+pub fn config_dir() -> PathBuf {
+    dirs_next::config_dir()
+        .expect("Could not determine config directory")
+        .join("minilauncher")
+}
+
+pub fn colors_file() -> PathBuf {
+    config_dir().join("colors.toml")
+}
 
 /// Load and apply configuration from files.
 /// If no config is found, apply the default one.
@@ -24,7 +34,7 @@ pub fn load_config(launcher: &Launcher) {
 /// Load colors configuration from file.
 /// Returns None on error.
 fn load_colors() -> Option<Colors> {
-    let colors_file = crate::paths::colors_file();
+    let colors_file = colors_file();
 
     let contents = fs::read_to_string(colors_file)
         .inspect_err(|err| warn!("Could not read colors configuration file: {}", err))

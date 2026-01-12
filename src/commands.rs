@@ -3,6 +3,7 @@
 use std::{env, process::Stdio};
 
 /// Commands to run for each launcher entry
+#[derive(Debug, Default, Clone)]
 pub struct Command {
     pub command: String,
     /// Whether to run this command in a terminal (TUI apps)

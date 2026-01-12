@@ -1,13 +1,18 @@
 import { VerticalBox, LineEdit } from "std-widgets.slint";
-import { LauncherState, LauncherColors } from "state.slint";
+import { LauncherState } from "state.slint";
 import { LauncherInput } from "input.slint";
+import { LauncherColors } from "colors.slint";
+import { Mode, LauncherConfig } from "config.slint";
 
 // Re-export global singletons to make them accessible from rust
-export { LauncherState, LauncherColors } from "state.slint";
+export { LauncherState } from "state.slint";
+export { LauncherColors } from "colors.slint";
+export { LauncherConfig } from "config.slint";
 
 
 component Option inherits Rectangle {
     in property <string> name;
+    in property <string> comment;
     in property <int> index;
     in property <image> icon;
 

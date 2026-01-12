@@ -1,0 +1,21 @@
+//! Global configuration definition
+
+/// Display mode
+export enum Mode {
+    // Icon, name and description
+    full,
+    // Icon and name
+    compact, 
+    // Just name
+    lines,
+    // Just icons
+    icons,
+}
+
+export global LauncherConfig {
+    in-out property <duration> animation;
+    in-out property <length> border;
+    in-out property <length> radius;
+    in-out property <Mode> mode;
+    in-out property <int> max-entries: 5;
+}

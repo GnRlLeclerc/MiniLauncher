@@ -15,8 +15,9 @@ mod commands;
 mod config;
 mod daemon;
 mod entries;
+mod freedesktop;
 mod ipc;
-mod paths;
+mod state;
 mod ui;
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -34,17 +35,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         return Ok(());
     } else {
-        let mut entries = vec![];
+        let mut custom = None;
 
         if let Some(path) = args.entries {
-            entries = entries::read_from_file(&path);
+            custom = Some(entries::read_from_file(&path));
         } else if args.stdin {
-            entries = entries::read_from_stdin();
-        } else {
-            entries = entries::freedesktop_entries();
+            custom = Some(entries::read_from_stdin());
         }
-
-        ui::run_ui(entries, !args.no_daemon, args.daemon);
+        ui::run_ui(custom, !args.no_daemon, args.daemon);
     }
 
     Ok(())
