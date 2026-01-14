@@ -3,75 +3,66 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    crane.url = "github:ipetkov/crane";
+    flake-utils.url = "github:numtide/flake-utils";
   };
 
   outputs =
     {
       self,
       nixpkgs,
+      crane,
+      flake-utils,
     }:
-    let
-      # Supported systems
-      systems = [
-        "aarch64-linux"
-        "i686-linux"
-        "x86_64-linux"
-        "aarch64-darwin"
-        "x86_64-darwin"
-      ];
+    flake-utils.lib.eachDefaultSystem (
+      system:
+      let
+        pkgs = nixpkgs.legacyPackages.${system};
+        craneLib = crane.mkLib pkgs;
 
-      forAllSystems = nixpkgs.lib.genAttrs systems;
-    in
-    {
-      devShell = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        pkgs.mkShell rec {
-          packages = with pkgs; [
-            slint-lsp
-          ];
+        src =
+          let
+            filterSlintFiles = path: _type: builtins.match ".*slint$" path != null;
+            cargoOrSlint = path: type: (filterSlintFiles path type) || (craneLib.filterCargoSources path type);
+          in
+          pkgs.lib.cleanSourceWith {
+            src = ./.;
+            name = "source";
+            filter = cargoOrSlint;
+          };
+
+        commonArgs = {
+          inherit src;
+          strictDeps = true;
           buildInputs = with pkgs; [
             libGL
             libxkbcommon
             wayland
             fontconfig
+
           ];
-          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath buildInputs;
-        }
-      );
+        };
 
-      packages = forAllSystems (
-        system:
-        let
-          pkgs = import nixpkgs { inherit system; };
-        in
-        {
-          minilauncher = pkgs.rustPlatform.buildRustPackage rec {
-            pname = "minilauncher";
-            version = "0.1.0";
-
-            src = ./.;
-            cargoHash = "sha256-emWl0cLVSYsKjrsVar6oJUeUIG0W38cFEZwMMBrZSWo=";
-
-            buildInputs = with pkgs; [
-              libGL
-              libxkbcommon
-              wayland
-              fontconfig
-            ];
+        cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+        minilauncher = craneLib.buildPackage (
+          commonArgs
+          // {
+            inherit cargoArtifacts;
 
             postFixup = ''
-              patchelf --set-rpath "${pkgs.lib.makeLibraryPath buildInputs}" $out/bin/minilauncher
+              patchelf --set-rpath "${pkgs.lib.makeLibraryPath commonArgs.buildInputs}" $out/bin/minilauncher
             '';
-
-            meta = {
-              description = "Fancy and minimal app launcher build with Slint";
-              homepage = "https://github.com/GnRlLeclerc/MiniLauncher";
-            };
-          };
-        }
-      );
-    };
+          }
+        );
+      in
+      {
+        packages.default = minilauncher;
+        devShells.default = craneLib.devShell {
+          packages = with pkgs; [
+            slint-lsp
+          ];
+          LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
+        };
+      }
+    );
 }

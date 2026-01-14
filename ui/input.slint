@@ -74,6 +74,7 @@ export component LauncherInput inherits Rectangle {
                 select-next();
                 return accept;
             } else if event.text == Key.Escape {
+                input.text = "";
                 LauncherState.hide();
                 return accept;
             } else if event.modifiers.control && event.text == "j" {
