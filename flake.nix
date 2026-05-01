@@ -34,12 +34,15 @@
         commonArgs = {
           inherit src;
           strictDeps = true;
+          nativeBuildInputs = with pkgs; [
+            pkg-config
+          ];
           buildInputs = with pkgs; [
             libGL
             libxkbcommon
             wayland
             fontconfig
-
+            stdenv.cc.cc.lib
           ];
         };
 
@@ -48,9 +51,9 @@
           commonArgs
           // {
             inherit cargoArtifacts;
+            postInstall = ''
+              patchelf --add-rpath "${pkgs.lib.makeLibraryPath commonArgs.buildInputs}" $out/bin/minilauncher
 
-            postFixup = ''
-              patchelf --set-rpath "${pkgs.lib.makeLibraryPath commonArgs.buildInputs}" $out/bin/minilauncher
             '';
           }
         );
@@ -60,8 +63,15 @@
         devShells.default = craneLib.devShell {
           packages = with pkgs; [
             slint-lsp
+            pkg-config
           ];
           LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath commonArgs.buildInputs;
+          PKG_CONFIG_PATH = pkgs.lib.makeSearchPathOutput "dev" "lib/pkgconfig" (
+            commonArgs.buildInputs
+            ++ [
+              pkgs.freetype
+            ]
+          );
         };
       }
     );
