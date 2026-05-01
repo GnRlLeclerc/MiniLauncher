@@ -3,7 +3,7 @@
 
 use std::error::Error;
 
-use clap::Parser;
+use clap::{CommandFactory, Parser};
 
 use crate::{
     cli::Args,
@@ -23,6 +23,11 @@ mod ui;
 fn main() -> Result<(), Box<dyn Error>> {
     env_logger::init();
     let args = Args::parse();
+
+    if let Some(shell) = args.completions {
+        shell.generate(&mut Args::command(), &mut std::io::stdout());
+        return Ok(());
+    }
 
     if args.refresh {
         if let Err(_) = send_action(Action::Refresh) {

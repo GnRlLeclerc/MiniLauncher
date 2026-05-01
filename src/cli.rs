@@ -62,4 +62,7 @@ pub struct Args {
     /// Stop the background daemon if running
     #[arg(short, long)]
     pub quit: bool,
+    /// Generate shell completions
+    #[arg(short, long)]
+    pub completions: Option<clap_complete_command::Shell>,
 }

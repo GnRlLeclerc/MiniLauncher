@@ -1,5 +1,6 @@
 import { LauncherState } from "state.slint";
 import { LauncherColors } from "colors.slint";
+import { LauncherConfig } from "config.slint";
 
 // Main input component
 export component LauncherInput inherits Rectangle {
@@ -8,10 +9,7 @@ export component LauncherInput inherits Rectangle {
     }
 
     // Basic styling
-    border-radius: 8px;
-    border-width: 1px;
-    border-color: LauncherColors.border;
-    height: 40px;
+    height: LauncherConfig.font-size + LauncherConfig.padding * 2;
     clip: true;
 
     // Placeholder underlay
@@ -19,9 +17,11 @@ export component LauncherInput inherits Rectangle {
         horizontal-alignment: left;
         text: "Enter a command...";
         color: LauncherColors.border;
-        x: parent.x + 5px; // left padding
-        width: parent.width - 10px;
+        x: parent.x;
+        width: parent.width;
         visible: input.text.is-empty;
+
+        animate color { duration: LauncherConfig.animation; }
     }
 
     function select-next() {
@@ -39,9 +39,11 @@ export component LauncherInput inherits Rectangle {
         // Styling
         color: LauncherColors.text;
         text: "";
-        x: parent.x + 5px; // left padding
-        width: parent.width - 10px;
+        x: parent.x;
+        width: parent.width;
         vertical-alignment: center;
+
+        animate color { duration: LauncherConfig.animation; }
 
         // Update entries on text change
         edited() => {

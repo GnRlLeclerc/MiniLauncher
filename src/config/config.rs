@@ -37,15 +37,15 @@ mod slint_mode {
     }
 }
 
-fn default_animation() -> u64 {
+fn default_animation_duration() -> u64 {
     200
 }
 
-fn default_border() -> u32 {
+fn default_border_width() -> u32 {
     2
 }
 
-fn default_radius() -> u32 {
+fn default_border_radius() -> u32 {
     8
 }
 
@@ -57,35 +57,50 @@ fn default_max_entries() -> u32 {
     5
 }
 
+fn default_font_family() -> Option<String> {
+    None
+}
+
+fn default_font_size() -> u32 {
+    11
+}
+
 /// App config
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
     /// Animation duration in milliseconds
-    #[serde(default = "default_animation")]
-    pub animation: u64,
+    #[serde(default = "default_animation_duration")]
+    pub animation_duration: u64,
     /// Border thickness in pixels
-    #[serde(default = "default_border")]
-    pub border: u32,
+    #[serde(default = "default_border_width")]
+    pub border_width: u32,
     /// Border radius in pixels
-    #[serde(default = "default_radius")]
-    pub radius: u32,
+    #[serde(default = "default_border_radius")]
+    pub border_radius: u32,
     /// Launcher mode
     #[serde(with = "slint_mode", default = "default_mode")]
     pub mode: Mode,
     /// Maximum number of entries to show
     #[serde(default = "default_max_entries")]
     pub max_entries: u32,
+
+    #[serde(default = "default_font_family")]
+    pub font_family: Option<String>,
+    #[serde(default = "default_font_size")]
+    pub font_size: u32,
 }
 
 /// When config file is missing, provide default config
 impl Default for Config {
     fn default() -> Self {
         Config {
-            animation: default_animation(),
-            border: default_border(),
-            radius: default_radius(),
+            animation_duration: default_animation_duration(),
+            border_width: default_border_width(),
+            border_radius: default_border_radius(),
             mode: default_mode(),
             max_entries: default_max_entries(),
+            font_family: default_font_family(),
+            font_size: default_font_size(),
         }
     }
 }

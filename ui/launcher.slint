@@ -3,56 +3,16 @@ import { LauncherState } from "state.slint";
 import { LauncherInput } from "input.slint";
 import { LauncherColors } from "colors.slint";
 import { Mode, LauncherConfig } from "config.slint";
+import { Option } from "option.slint";
 
 // Re-export global singletons to make them accessible from rust
 export { LauncherState } from "state.slint";
 export { LauncherColors } from "colors.slint";
 export { LauncherConfig } from "config.slint";
 
-
-component Option inherits Rectangle {
-    in property <string> name;
-    in property <string> comment;
-    in property <int> index;
-    in property <image> icon;
-
-    width: 100%;
-    height: 40px;
-    border-radius: 8px;
-
-    background: touch.pressed ? LauncherColors.accent : (index == LauncherState.selected_index) ? LauncherColors.highlight.transparentize(90%) : LauncherColors.background;
-
-    animate background { duration: 100ms; }
-
-    HorizontalLayout {
-        Image {
-            height: 24px;
-            width: 24px;
-            source: icon;
-        }
-
-        Text {
-            width: parent.width - 20px;
-            horizontal-alignment: TextHorizontalAlignment.left;
-            text: name;
-            color: LauncherColors.text;
-        }
-    }
-
-    touch := TouchArea {
-        changed has-hover => {
-            if self.has-hover {
-                LauncherState.selected_index = index;
-            }
-        }
-
-        clicked => LauncherState.run_command(name);
-    }
-}
-
 component Divider inherits Rectangle {
     width: 100%;
-    height: 2px;
+    height: 1px;
     border-radius: 1px;
     background: LauncherColors.border;
 }
@@ -60,15 +20,37 @@ component Divider inherits Rectangle {
 export component Launcher inherits Window {
     title: "MiniLauncher";
     background: LauncherColors.background;
-    VerticalBox {
+
+    default-font-family: LauncherConfig.font-family;
+    default-font-size: LauncherConfig.font-size;
+
+    VerticalLayout {
+        padding: LauncherConfig.padding;
+        spacing: LauncherConfig.padding;
+
         LauncherInput { }
 
         Divider { }
 
-        for entry[index] in LauncherState.entries: Option {
-            name: entry.name;
-            index: index;
-            icon: entry.icon;
+        // Icon-only mode
+        if LauncherConfig.mode == Mode.icons: HorizontalLayout {
+            spacing: LauncherConfig.padding;
+            for entry[index] in LauncherState.entries: LargeIcon {
+                name: entry.name;
+                index: index;
+                icon: entry.icon;
+            }
+        }
+
+        // Other modes (lines)
+        if LauncherConfig.mode != Mode.icons: VerticalLayout {
+            spacing: LauncherConfig.padding;
+            for entry[index] in LauncherState.entries: Option {
+                name: entry.name;
+                index: index;
+                icon: entry.icon;
+                comment: entry.comment;
+            }
         }
     }
 }

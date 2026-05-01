@@ -1,0 +1,94 @@
+//! Menu option
+
+import { LauncherColors } from "colors.slint";
+import { LauncherState } from "state.slint";
+import { LauncherConfig, Mode } from "config.slint";
+
+// Large icon for icon-only option display mode
+export component LargeIcon inherits Rectangle {
+    in property <string> name;
+    in property <int> index;
+    in property <image> icon;
+
+    width: LauncherConfig.large-icon-size + LauncherConfig.padding * 2;
+    height: LauncherConfig.large-icon-size + LauncherConfig.padding * 2;
+    border-radius: LauncherConfig.radius;
+
+    background: touch.pressed ? LauncherColors.accent : (index == LauncherState.selected_index) ? LauncherColors.highlight.transparentize(80%) : LauncherColors.background;
+    animate background { duration: LauncherConfig.animation; }
+
+    Image {
+        width: LauncherConfig.large-icon-size;
+        height: LauncherConfig.large-icon-size;
+        source: icon;
+    }
+
+    touch := TouchArea {
+        changed has-hover => {
+            if self.has-hover {
+                LauncherState.selected_index = index;
+            }
+        }
+
+        clicked => LauncherState.run_command(name);
+    }
+}
+
+// Line-shaped option
+export component Option inherits Rectangle {
+    in property <string> name;
+    in property <string> comment;
+    in property <int> index;
+    in property <image> icon;
+
+    width: 100%;
+    height: (LauncherConfig.mode == Mode.lines ? LauncherConfig.font-size : LauncherConfig.icon-size) + LauncherConfig.padding * 2;
+    border-radius: LauncherConfig.radius;
+
+    background: touch.pressed ? LauncherColors.accent : (index == LauncherState.selected_index) ? LauncherColors.highlight.transparentize(80%) : LauncherColors.background;
+    animate background { duration: LauncherConfig.animation; }
+
+    HorizontalLayout {
+        padding-left: 10px;
+        padding-right: 10px;
+        alignment: start;
+        spacing: 10px;
+        if LauncherConfig.mode != Mode.lines: VerticalLayout {
+            alignment: center;
+            Image {
+                height: LauncherConfig.icon-size;
+                width: LauncherConfig.icon-size;
+                source: icon;
+            }
+        }
+
+        VerticalLayout {
+            Text {
+                horizontal-alignment: left;
+                vertical-alignment: center;
+                text: name;
+                color: LauncherColors.text;
+                animate color { duration: LauncherConfig.animation; }
+            }
+
+            if comment != "" && LauncherConfig.mode == Mode.full:  Text {
+                overflow: elide;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+                text: comment;
+                color: LauncherColors.border.brighter(100%); // TODO: faut une autre couleur pour ça
+                animate color { duration: LauncherConfig.animation; }
+            }
+        }
+    }
+
+    touch := TouchArea {
+        changed has-hover => {
+            if self.has-hover {
+                LauncherState.selected_index = index;
+            }
+        }
+
+        clicked => LauncherState.run_command(name);
+    }
+}

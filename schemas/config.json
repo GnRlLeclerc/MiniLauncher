@@ -5,15 +5,15 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "animation": {
+    "animation_duration": {
       "type": "integer",
       "description": "Animation duration in milliseconds"
     },
-    "border": {
+    "border_width": {
       "type": "integer",
       "description": "Border thickness in pixels"
     },
-    "radius": {
+    "border_radius": {
       "type": "integer",
       "description": "Border radius in pixels"
     },
