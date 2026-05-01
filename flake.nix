@@ -36,6 +36,7 @@
           strictDeps = true;
           nativeBuildInputs = with pkgs; [
             pkg-config
+            makeWrapper
           ];
           buildInputs = with pkgs; [
             libGL
@@ -51,9 +52,9 @@
           commonArgs
           // {
             inherit cargoArtifacts;
-            postInstall = ''
-              patchelf --add-rpath "${pkgs.lib.makeLibraryPath commonArgs.buildInputs}" $out/bin/minilauncher
-
+            postFixup = ''
+              wrapProgram $out/bin/minilauncher \
+                --prefix LD_LIBRARY_PATH : ${pkgs.lib.makeLibraryPath commonArgs.buildInputs}
             '';
           }
         );
