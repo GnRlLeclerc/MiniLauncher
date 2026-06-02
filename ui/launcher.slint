@@ -20,6 +20,7 @@ component Divider inherits Rectangle {
 export component Launcher inherits Window {
     title: "MiniLauncher";
     background: LauncherColors.background;
+    background: LauncherColors.background.with-alpha(LauncherConfig.opacity);
 
     default-font-family: LauncherConfig.font-family;
     default-font-size: LauncherConfig.font-size;

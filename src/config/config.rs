@@ -65,6 +65,10 @@ fn default_font_size() -> u32 {
     11
 }
 
+fn default_opacity() -> f32 {
+    1.0
+}
+
 /// App config
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -84,6 +88,9 @@ pub struct Config {
     #[serde(default = "default_max_entries")]
     pub max_entries: u32,
 
+    #[serde(default = "default_opacity")]
+    pub opacity: f32,
+
     #[serde(default = "default_font_family")]
     pub font_family: Option<String>,
     #[serde(default = "default_font_size")]
@@ -99,6 +106,7 @@ impl Default for Config {
             border_radius: default_border_radius(),
             mode: default_mode(),
             max_entries: default_max_entries(),
+            opacity: default_opacity(),
             font_family: default_font_family(),
             font_size: default_font_size(),
         }
