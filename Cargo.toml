@@ -21,14 +21,14 @@ nucleo-matcher = "0.3.1"
 paste = "1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-slint = "1.14.1"
+slint = "1.16.1"
 strip-ansi-escapes = "0.2.1"
 sys-locale = "0.3.2"
 toml = "0.9.10"
 unidecode = "0.3.0"
 
 [build-dependencies]
-slint-build = "1.14.1"
+slint-build = "1.16.1"
 
 [profile.release]
 opt-level = 3

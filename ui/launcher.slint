@@ -1,9 +1,9 @@
-import { VerticalBox, LineEdit } from "std-widgets.slint";
+import { VerticalBox, LineEdit, HorizontalBox } from "std-widgets.slint";
 import { LauncherState } from "state.slint";
 import { LauncherInput } from "input.slint";
 import { LauncherColors } from "colors.slint";
 import { Mode, LauncherConfig } from "config.slint";
-import { Option } from "option.slint";
+import { Option, LargeIcon } from "option.slint";
 
 // Re-export global singletons to make them accessible from rust
 export { LauncherState } from "state.slint";
@@ -14,24 +14,57 @@ component Divider inherits Rectangle {
     width: 100%;
     height: 1px;
     border-radius: 1px;
-    background: LauncherColors.border;
+    background: LauncherColors.border.with-alpha(LauncherConfig.opacity);
 }
 
 export component Launcher inherits Window {
     title: "MiniLauncher";
-    background: LauncherColors.background;
     background: LauncherColors.background.with-alpha(LauncherConfig.opacity);
+
+    forward-focus: input;
 
     default-font-family: LauncherConfig.font-family;
     default-font-size: LauncherConfig.font-size;
+
+    preferred-height: window-height();
+    preferred-width: window-width();
+
+    // Compute a fixed window height that holds exactly the max amount of entries,
+    // even if there are less.
+    pure function window-height() -> length {
+        let input = input.height + divider.height;
+        let padding = LauncherConfig.padding * 2; // top + bottom
+        let spacing = LauncherConfig.padding * 2; // around the divider
+        let total = input + padding + spacing;
+
+        if LauncherConfig.mode == Mode.icons {
+            // Horizontal icon layout
+            return total + LauncherConfig.large-icon-size + LauncherConfig.padding * 2;
+        } else {
+            // Vertical layout
+            let entries = LauncherConfig.max-entries * LauncherConfig.entry-height();
+            let entry-spacing = LauncherConfig.padding * (LauncherConfig.max-entries - 1);
+
+            return total + entries + entry-spacing;
+        }
+    }
+
+    pure function window-width() -> length {
+        if LauncherConfig.mode == Mode.icons {
+            let padding = LauncherConfig.padding * (LauncherConfig.max-entries + 1);
+            let entries = LauncherConfig.max-entries * (LauncherConfig.large-icon-size + LauncherConfig.padding * 2);
+            return padding + entries;
+        }
+        return 300px;
+    }
 
     VerticalLayout {
         padding: LauncherConfig.padding;
         spacing: LauncherConfig.padding;
 
-        LauncherInput { }
+        input := LauncherInput { }
 
-        Divider { }
+        divider := Divider { }
 
         // Icon-only mode
         if LauncherConfig.mode == Mode.icons: HorizontalLayout {

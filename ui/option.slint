@@ -14,8 +14,19 @@ export component LargeIcon inherits Rectangle {
     height: LauncherConfig.large-icon-size + LauncherConfig.padding * 2;
     border-radius: LauncherConfig.radius;
 
-    background: touch.pressed ? LauncherColors.accent : (index == LauncherState.selected_index) ? LauncherColors.highlight.transparentize(80%) : LauncherColors.background;
     animate background { duration: LauncherConfig.animation; }
+
+    states [
+        pressed when touch.pressed: {
+            background: LauncherColors.accent;
+        }
+        selected when index == LauncherState.selected_index: {
+            background: LauncherColors.highlight.transparentize(80%);
+        }
+        default: {
+            background: transparent;
+        }
+    ]
 
     Image {
         width: LauncherConfig.large-icon-size;
@@ -42,10 +53,21 @@ export component Option inherits Rectangle {
     in property <image> icon;
 
     width: 100%;
-    height: (LauncherConfig.mode == Mode.lines ? LauncherConfig.font-size : LauncherConfig.icon-size) + LauncherConfig.padding * 2;
-    border-radius: LauncherConfig.radius;
+    height: LauncherConfig.entry-height();
 
-    background: touch.pressed ? LauncherColors.accent : (index == LauncherState.selected_index) ? LauncherColors.highlight.transparentize(80%) : LauncherColors.background;
+    states [
+        pressed when touch.pressed: {
+            background: LauncherColors.accent;
+        }
+        selected when index == LauncherState.selected_index: {
+            background: LauncherColors.highlight.transparentize(80%);
+        }
+        default: {
+            background: transparent;
+        }
+    ]
+
+    border-radius: LauncherConfig.radius;
     animate background { duration: LauncherConfig.animation; }
 
     HorizontalLayout {

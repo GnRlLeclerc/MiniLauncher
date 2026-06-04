@@ -4,12 +4,9 @@ import { LauncherConfig } from "config.slint";
 
 // Main input component
 export component LauncherInput inherits Rectangle {
-    init => {
-        input.focus();
-    }
+    forward-focus: input;
 
-    // Basic styling
-    height: LauncherConfig.font-size + LauncherConfig.padding * 2;
+    height: LauncherConfig.font-size + LauncherConfig.padding * 3;
     clip: true;
 
     // Placeholder underlay
@@ -72,16 +69,16 @@ export component LauncherInput inherits Rectangle {
             if event.text == Key.UpArrow {
                 select-previous();
                 return accept;
-            } else if event.text == Key.DownArrow {
+            } else if event.text == Key.DownArrow || event.text == Key.RightArrow {
                 select-next();
                 return accept;
-            } else if event.text == Key.Escape {
+            } else if event.text == Key.Escape || event.text == Key.LeftArrow {
                 input.text = "";
                 LauncherState.hide();
                 return accept;
-            } else if event.modifiers.control && event.text == "j" {
+            } else if event.modifiers.control && (event.text == "j" || event.text == "l") {
                 select-next();
-            } else if event.modifiers.control && event.text == "k" {
+            } else if event.modifiers.control && (event.text == "k" || event.text == "h") {
                 select-previous();
             }
             reject

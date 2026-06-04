@@ -21,4 +21,17 @@ export global LauncherConfig {
     in-out property <string> font-family;
     in-out property <length> font-size;
     in-out property <float> opacity;
+
+    in-out property <length> padding: 10px;
+    in-out property <length> icon-size: 32px;
+    in-out property <length> large-icon-size: 64px;
+
+    public pure function entry-height() -> length {
+        let padding = padding * 2; // top + bottom
+
+        if (mode == Mode.lines) {
+            return font-size + padding;
+        }
+        return icon-size + padding;
+    }
 }
