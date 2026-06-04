@@ -66,13 +66,13 @@ export component LauncherInput inherits Rectangle {
 
         // Handle arrow keys
         key-pressed(event) => {
-            if event.text == Key.UpArrow {
+            if event.text == Key.UpArrow || event.text == Key.LeftArrow {
                 select-previous();
                 return accept;
             } else if event.text == Key.DownArrow || event.text == Key.RightArrow {
                 select-next();
                 return accept;
-            } else if event.text == Key.Escape || event.text == Key.LeftArrow {
+            } else if event.text == Key.Escape {
                 input.text = "";
                 LauncherState.hide();
                 return accept;

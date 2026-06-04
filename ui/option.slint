@@ -18,7 +18,7 @@ export component LargeIcon inherits Rectangle {
 
     states [
         pressed when touch.pressed: {
-            background: LauncherColors.accent;
+            background: LauncherColors.accent.with-alpha(LauncherConfig.opacity);
         }
         selected when index == LauncherState.selected_index: {
             background: LauncherColors.highlight.transparentize(80%);
@@ -57,7 +57,7 @@ export component Option inherits Rectangle {
 
     states [
         pressed when touch.pressed: {
-            background: LauncherColors.accent;
+            background: LauncherColors.accent.with-alpha(LauncherConfig.opacity);
         }
         selected when index == LauncherState.selected_index: {
             background: LauncherColors.highlight.transparentize(80%);
